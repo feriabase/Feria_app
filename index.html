@@ -1,20 +1,118 @@
 <!doctype html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Feria Base 3F</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111111">
-</head>
-<body>
-<h1>Feria Base 3F</h1>
-<p>App lista para instalar</p>
+<title>Feria 3F PRO UI</title><style>
+body{margin:0;font-family:sans-serif;background:#0f172a;color:#fff}
+.header{padding:15px;font-size:20px;font-weight:bold}
+.nav{display:flex;gap:8px;overflow:auto;padding:10px}
+.btn{background:#1e293b;border:none;padding:10px 14px;border-radius:10px;color:#fff}
+.btn.active{background:#3b82f6}
+.container{padding:12px}
+.card{background:#1e293b;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 4px 10px rgba(0,0,0,.3)}
+.kpi{display:flex;justify-content:space-between;margin:6px 0}
+input,button{width:100%;padding:10px;border-radius:8px;border:none;margin-top:6px}
+input{background:#0f172a;color:#fff;border:1px solid #334155}
+button{background:#3b82f6;color:#fff}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{background:#0f172a;padding:10px;border-radius:10px}
+.small{font-size:12px;color:#94a3b8}
+.hidden{display:none}
+</style></head>
+<body><div class="header">Feria Base 3F</div><div class="nav">
+<button class="btn active" onclick="show('dash',event)">Inicio</button>
+<button class="btn" onclick="show('events',event)">Eventos</button>
+<button class="btn" onclick="show('fin',event)">Finanzas</button>
+<button class="btn" onclick="show('config',event)">Config</button>
+</div><div class="container"><div id="dash">
+<div class="card">
+<div class="kpi"><span>Ingresos</span><b id="inc">0</b></div>
+<div class="kpi"><span>Pendientes</span><b id="pen">0</b></div>
+<div class="kpi"><span>Gastos</span><b id="gas">0</b></div>
+<div class="kpi"><span>Ganancia</span><b id="gan">0</b></div>
+</div><div class="card">
+<h3>Alertas</h3>
+<div id="alerts" class="list"></div>
+</div>
+</div><div id="events" class="hidden">
+<div class="card">
+<h3>Nuevo evento</h3>
+<form id="f">
+<input id="n" placeholder="Nombre">
+<input id="d" type="date">
+<input id="c" placeholder="Cliente">
+<input id="u" type="number" placeholder="Cantidad">
+<input id="p" type="number" placeholder="Precio">
+<button>Guardar</button>
+</form>
+</div><div class="card">
+<h3>Lista</h3>
+<div id="list" class="list"></div>
+</div>
+</div><div id="fin" class="hidden">
+<div class="card">
+<h3>Nuevo gasto</h3>
+<form id="f2">
+<input id="fd" type="date">
+<input id="fd2" placeholder="Detalle">
+<input id="fa" type="number">
+<button>Guardar</button>
+</form>
+</div>
+</div><div id="config" class="hidden">
+<div class="card">
+<h3>Datos</h3>
+<textarea id="json" rows="6"></textarea>
+<button onclick="imp()">Importar</button>
+<button onclick="exp()">Exportar</button>
+</div>
+</div></div><script>
+let db={events:[],expenses:[]}
 
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+function show(id,e){
+document.querySelectorAll('.container>div').forEach(v=>v.classList.add('hidden'))
+document.getElementById(id).classList.remove('hidden')
+document.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'))
+e.target.classList.add('active')
 }
-</script>
-</body>
+
+function save(){localStorage.setItem('db',JSON.stringify(db));render();calc();alertas()}
+function load(){let d=localStorage.getItem('db');if(d) db=JSON.parse(d)}
+
+f.onsubmit=e=>{e.preventDefault();db.events.push({name:n.value,date:d.value,client:c.value,units:+u.value,price:+p.value});save();f.reset()}
+f2.onsubmit=e=>{e.preventDefault();db.expenses.push({date:fd.value,detail:fd2.value,amount:+fa.value});save();f2.reset()}
+
+function render(){
+list.innerHTML=''
+db.events.forEach(e=>{
+let t=e.units*e.price
+list.innerHTML+=`<div class='item'><b>${e.name}</b><div class='small'>${e.date}</div><div>$${t}</div></div>`})
+}
+
+function calc(){
+let inc=0,pen=0,gas=0
+
+db.events.forEach(e=>inc+=e.units*e.price)
+db.expenses.forEach(e=>gas+=e.amount)
+
+incEl.innerText=inc
+penEl.innerText=0
+gasEl.innerText=gas
+gan.innerText=inc-gas
+}
+
+function alertas(){
+alerts.innerHTML=''
+db.events.slice(0,3).forEach(e=>alerts.innerHTML+=`<div class='item'>📅 ${e.name}</div>`)
+}
+
+function imp(){let d=JSON.parse(json.value);if(d.data)d=d.data;db=d;save()}
+function exp(){alert(JSON.stringify({data:db}))}
+
+const incEl=inc,penEl=pen,gasEl=gas
+
+load();render();calc();alertas()
+</script></body>
 </html>
