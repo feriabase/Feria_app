@@ -106,9 +106,7 @@ button{background:#3b82f6;color:#fff}
 
 <script>
 // PWA
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
+navigator.serviceWorker.register('sw-v2.js')
 
 // DATA
 let db={events:[],expenses:[]}
