@@ -6,6 +6,6 @@ self.addEventListener('activate', e => {
   clients.claim();
 });
 
-self.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', event => {
   event.respondWith(fetch(event.request));
 });
